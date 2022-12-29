@@ -29,7 +29,13 @@ import com.github.weisj.darklaf.theme.DarculaTheme;
 import com.github.weisj.darklaf.theme.Theme;
 import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.util.ArrayList;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import joeyproductions.kazhardcommand.sessioncore.SessionFrame;
 import joeyproductions.kazhardcommand.spritecore.SpriteTilePatternSwitch;
 import joeyproductions.kazhardcommand.sessioncore.ui.VisualTacticalTile;
@@ -42,6 +48,7 @@ public class Main {
     
     private static Main SINGLETON;
     private SessionFrame sessionFrame;
+    private final LinkedBlockingQueue<String> eventPool = new LinkedBlockingQueue<>();
     
     private int screenWidth = 640;
     private int screenHeight = 400;
@@ -49,6 +56,7 @@ public class Main {
     public static final int SCREEN_STANDARD_HEIGHT = 960;
     public static final int SCREEN_EDGE_BUFFER = 128;
     public static final int PIXEL_UPSCALE_STEPS = 2;
+    public static boolean IS_RUNNING = true;
     
     public static void main(String[] args) {
         SINGLETON = new Main();
@@ -69,14 +77,9 @@ public class Main {
         
         // Load testing session frame
         SINGLETON.sessionFrame = SessionFrame.create();
-    }
-    
-    public static Main getMain() {
-        return SINGLETON;
-    }
-    
-    public static SessionFrame getSessionFrame() {
-        return SINGLETON.sessionFrame;
+        
+        // Start the event handler
+        SINGLETON.initEventHandler();
     }
     
     public static int getScreenWidth() {
@@ -85,5 +88,39 @@ public class Main {
     
     public static int getScreenHeight() {
         return SINGLETON.screenHeight;
+    }
+    
+    public static void handleEvent(String event) {
+        try {
+            SINGLETON.eventPool.offer(event, 5, TimeUnit.SECONDS);
+        } catch (InterruptedException ex) {
+            Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+    
+    private void initEventHandler() {
+        while (IS_RUNNING) {
+            while (!eventPool.isEmpty()) {
+                try {
+                    String event = eventPool.poll(5, TimeUnit.SECONDS);
+                    if (event != null) {
+                        distributeEvent(event);
+                    }
+                } catch (InterruptedException ex) {
+                    Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+            
+            // Chill out, and let the eventPool have some breathing room.
+            try {
+                TimeUnit.MILLISECONDS.sleep(10);
+            } catch (InterruptedException ex) {
+                Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+    }
+    
+    private void distributeEvent(String event) {
+        //TODO: Send somewhere
     }
 }

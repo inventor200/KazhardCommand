@@ -25,6 +25,8 @@ package joeyproductions.kazhardcommand.sessioncore;
 
 import joeyproductions.kazhardcommand.sessioncore.ui.VisualTacticalGrid;
 import java.awt.BorderLayout;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
@@ -62,7 +64,13 @@ public class SessionFrame {
             
             product.jframe.setResizable(true);
             product.jframe.setLocationRelativeTo(null);
-            product.jframe.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+            product.jframe.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+            product.jframe.addWindowListener(new WindowAdapter() {
+                @Override
+                public void windowClosing(WindowEvent e) {
+                    Main.IS_RUNNING = false;
+                }
+            });
             
             product.contentPanel.setLayout(new BorderLayout());
             product.jframe.setContentPane(product.contentPanel);
@@ -74,32 +82,5 @@ public class SessionFrame {
         });
         
         return product;
-    }
-    
-    private static SessionFrame getSingleton() {
-        return Main.getSessionFrame();
-    }
-    
-    private static void checkSessionFrame() {
-        if (getSingleton() == null) {
-            throw new RuntimeException("There is no SessionFrame.");
-        }
-    }
-    
-    public static void refresh() {
-        checkSessionFrame();
-        
-        SwingUtilities.invokeLater(() -> {
-            getSingleton().jframe.repaint();
-        });
-    }
-    
-    public static void fullRefresh() {
-        checkSessionFrame();
-        
-        SwingUtilities.invokeLater(() -> {
-            getSingleton().jframe.revalidate();
-            getSingleton().jframe.repaint();
-        });
     }
 }
