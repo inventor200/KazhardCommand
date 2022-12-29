@@ -21,28 +21,17 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package joeyproductions.kazhardcommand.sessioncore.ui;
+package joeyproductions.kazhardcommand;
 
-import joeyproductions.kazhardcommand.sessioncore.data.TacticalTileData;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
-import joeyproductions.kazhardcommand.spritecore.Sprite;
+import java.nio.file.Path;
 
 /**
- * An object for storing map tile data in the Swing arrangement.
+ * An exception for reporting the offending file path during an IO error.
  * @author Joseph Cramsey
  */
-public class VisualTacticalTile extends VisualClickTile {
+public class SpecificFileException extends Exception {
     
-    public TacticalTileData data = null;
-    public Sprite cachedRaiseSprite = null;
-
-    @Override
-    public void paint(Graphics g) {
-        Graphics2D g2 = (Graphics2D)g;
-        if (data == null) return;
-        g2.drawImage(cachedRaiseSprite.img, null, 0, 0);
-        paintMouseDetails(g2);
-        g2.drawImage(Sprite.TEST_GRID.img, null, 0, 0);
+    public SpecificFileException(Path attemptedPath) {
+        super("File not found: \"" + attemptedPath.toAbsolutePath() + "\"");
     }
 }

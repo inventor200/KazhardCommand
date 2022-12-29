@@ -21,28 +21,15 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package joeyproductions.kazhardcommand.sessioncore.ui;
-
-import joeyproductions.kazhardcommand.sessioncore.data.TacticalTileData;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
-import joeyproductions.kazhardcommand.spritecore.Sprite;
+package joeyproductions.kazhardcommand.spritecore;
 
 /**
- * An object for storing map tile data in the Swing arrangement.
+ * An exception thrown for malformed pattern Strings.
  * @author Joseph Cramsey
  */
-public class VisualTacticalTile extends VisualClickTile {
+public class InvalidDiagramStringException extends Exception {
     
-    public TacticalTileData data = null;
-    public Sprite cachedRaiseSprite = null;
-
-    @Override
-    public void paint(Graphics g) {
-        Graphics2D g2 = (Graphics2D)g;
-        if (data == null) return;
-        g2.drawImage(cachedRaiseSprite.img, null, 0, 0);
-        paintMouseDetails(g2);
-        g2.drawImage(Sprite.TEST_GRID.img, null, 0, 0);
+    public InvalidDiagramStringException(String diagram) {
+        super("Invalid diagram String: \"" + diagram + "\"");
     }
 }

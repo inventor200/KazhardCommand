@@ -30,8 +30,6 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.imageio.ImageIO;
 import joeyproductions.kazhardcommand.Main;
 
@@ -45,19 +43,26 @@ public class Sprite {
     public Dimension size;
     
     public Sprite(String path) {
-        // Load
-        File pathToFile = new File("images/" + path + ".png");
-        
         try {
+            // Load
+            File pathToFile = Main.openLocalFile("images/" + path + ".png", Sprite.class);
+
             this.img = upscale(ImageIO.read(pathToFile));
             this.size = new Dimension(img.getWidth(), img.getHeight());
         } catch (IOException ex) {
-            Logger.getLogger(Sprite.class.getName() + ": " + path).log(Level.SEVERE, null, ex);
+            Main.showInitException(ex, Sprite.class);
         }
     }
     
-    public Sprite(ArrayList<BufferedImage> sheet, int index) {
-        this(sheet.get(index));
+    private static Sprite createFromSheet(ArrayList<BufferedImage> sheet, int index) {
+        try {
+            BufferedImage img = sheet.get(index);
+            Sprite product = new Sprite(img);
+            return product;
+        } catch (IndexOutOfBoundsException ex) {
+            Main.showInitException(ex, Sprite.class);
+            return null;
+        }
     }
     
     private static BufferedImage upscale(BufferedImage baseImg) {
@@ -94,9 +99,10 @@ public class Sprite {
     }
     
     public static ArrayList<BufferedImage> getGridSheet(String path, int xSize, int ySize) {
-        // Load
-        File pathToFile = new File("images/" + path + ".png");
         try {
+            // Load
+            File pathToFile = Main.openLocalFile("images/" + path + ".png", Sprite.class);
+            
             // Cut
             BufferedImage sheet = ImageIO.read(pathToFile);
             ArrayList<BufferedImage> images = new ArrayList<>();
@@ -125,7 +131,7 @@ public class Sprite {
             
             return images;
         } catch (IOException ex) {
-            Logger.getLogger(Sprite.class.getName() + ": " + path).log(Level.SEVERE, null, ex);
+            Main.showInitException(ex, Sprite.class);
         }
         
         return new ArrayList<>();
@@ -163,25 +169,25 @@ public class Sprite {
         
         ArrayList<BufferedImage> cliffSet = getGridSheet("CliffSetDark", 32, 32);
         
-        CLIFF_PILLAR = new Sprite(cliffSet, 0);
-        BLANK_GROUND = new Sprite(cliffSet, 1);
-        CLIFF_NORTH = new Sprite(cliffSet, 2);
-        CLIFF_NORTH_SOUTH = new Sprite(cliffSet, 4);
-        CLIFFSIDE_PILLAR = new Sprite(cliffSet, 5);
-        CLIFF_NORTHWEST = new Sprite(cliffSet, 6);
-        CLIFF_SOUTH_EDGE = new Sprite(cliffSet, 7);
-        CLIFF_NORTHEAST = new Sprite(cliffSet, 8);
-        CLIFF_WEST = new Sprite(cliffSet, 10);
-        CLIFF_EAST_EDGE = new Sprite(cliffSet, 11);
-        CLIFFSIDE_FLAT = new Sprite(cliffSet, 12);
-        CLIFF_WEST_EDGE = new Sprite(cliffSet, 13);
-        CLIFF_EAST = new Sprite(cliffSet, 14);
-        CLIFFSIDE_WEST = new Sprite(cliffSet, 15);
-        CLIFF_SOUTHWEST = new Sprite(cliffSet, 16);
-        CLIFF_NORTH_EDGE = new Sprite(cliffSet, 17);
-        CLIFF_SOUTHEAST = new Sprite(cliffSet, 18);
-        CLIFFSIDE_EAST = new Sprite(cliffSet, 19);
-        CLIFF_EAST_WEST = new Sprite(cliffSet, 20);
-        CLIFF_SOUTH = new Sprite(cliffSet, 22);
+        CLIFF_PILLAR = createFromSheet(cliffSet, 0);
+        BLANK_GROUND = createFromSheet(cliffSet, 1);
+        CLIFF_NORTH = createFromSheet(cliffSet, 2);
+        CLIFF_NORTH_SOUTH = createFromSheet(cliffSet, 4);
+        CLIFFSIDE_PILLAR = createFromSheet(cliffSet, 5);
+        CLIFF_NORTHWEST = createFromSheet(cliffSet, 6);
+        CLIFF_SOUTH_EDGE = createFromSheet(cliffSet, 7);
+        CLIFF_NORTHEAST = createFromSheet(cliffSet, 8);
+        CLIFF_WEST = createFromSheet(cliffSet, 10);
+        CLIFF_EAST_EDGE = createFromSheet(cliffSet, 11);
+        CLIFFSIDE_FLAT = createFromSheet(cliffSet, 12);
+        CLIFF_WEST_EDGE = createFromSheet(cliffSet, 13);
+        CLIFF_EAST = createFromSheet(cliffSet, 14);
+        CLIFFSIDE_WEST = createFromSheet(cliffSet, 15);
+        CLIFF_SOUTHWEST = createFromSheet(cliffSet, 16);
+        CLIFF_NORTH_EDGE = createFromSheet(cliffSet, 17);
+        CLIFF_SOUTHEAST = createFromSheet(cliffSet, 18);
+        CLIFFSIDE_EAST = createFromSheet(cliffSet, 19);
+        CLIFF_EAST_WEST = createFromSheet(cliffSet, 20);
+        CLIFF_SOUTH = createFromSheet(cliffSet, 22);
     }
 }

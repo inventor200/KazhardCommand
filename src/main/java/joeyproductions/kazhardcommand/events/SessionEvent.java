@@ -21,28 +21,13 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package joeyproductions.kazhardcommand.sessioncore.ui;
-
-import joeyproductions.kazhardcommand.sessioncore.data.TacticalTileData;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
-import joeyproductions.kazhardcommand.spritecore.Sprite;
+package joeyproductions.kazhardcommand.events;
 
 /**
- * An object for storing map tile data in the Swing arrangement.
+ * The basic class for all events in a game session.
  * @author Joseph Cramsey
  */
-public class VisualTacticalTile extends VisualClickTile {
+public interface SessionEvent {
     
-    public TacticalTileData data = null;
-    public Sprite cachedRaiseSprite = null;
-
-    @Override
-    public void paint(Graphics g) {
-        Graphics2D g2 = (Graphics2D)g;
-        if (data == null) return;
-        g2.drawImage(cachedRaiseSprite.img, null, 0, 0);
-        paintMouseDetails(g2);
-        g2.drawImage(Sprite.TEST_GRID.img, null, 0, 0);
-    }
+    //
 }

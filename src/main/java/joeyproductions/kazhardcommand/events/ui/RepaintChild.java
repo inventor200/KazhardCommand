@@ -21,28 +21,35 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package joeyproductions.kazhardcommand.sessioncore.ui;
+package joeyproductions.kazhardcommand.events.ui;
 
-import joeyproductions.kazhardcommand.sessioncore.data.TacticalTileData;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
-import joeyproductions.kazhardcommand.spritecore.Sprite;
+import java.util.ArrayList;
 
 /**
- * An object for storing map tile data in the Swing arrangement.
+ * A connection between possible repaint destinations and a RepaintHandler.
  * @author Joseph Cramsey
  */
-public class VisualTacticalTile extends VisualClickTile {
+class RepaintChild {
     
-    public TacticalTileData data = null;
-    public Sprite cachedRaiseSprite = null;
-
-    @Override
-    public void paint(Graphics g) {
-        Graphics2D g2 = (Graphics2D)g;
-        if (data == null) return;
-        g2.drawImage(cachedRaiseSprite.img, null, 0, 0);
-        paintMouseDetails(g2);
-        g2.drawImage(Sprite.TEST_GRID.img, null, 0, 0);
+    private final ArrayList<Integer> destinationTypes = new ArrayList<>();
+    private final RepaintHandler handler;
+    
+    RepaintChild(RepaintHandler handler, int destinationType) {
+        this.handler = handler;
+        destinationTypes.add(destinationType);
+    }
+    
+    void addDestinationType(int destinationType) {
+        if (!hasDestinationType(destinationType)) {
+            destinationTypes.add(destinationType);
+        }
+    }
+    
+    boolean hasDestinationType(int destinationType) {
+        return destinationTypes.contains(destinationType);
+    }
+    
+    RepaintHandler getHandler() {
+        return handler;
     }
 }

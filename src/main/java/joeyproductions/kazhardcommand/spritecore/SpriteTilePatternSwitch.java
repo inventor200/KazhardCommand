@@ -23,7 +23,7 @@
  */
 package joeyproductions.kazhardcommand.spritecore;
 
-import joeyproductions.kazhardcommand.spritecore.Sprite;
+import joeyproductions.kazhardcommand.Main;
 import joeyproductions.kazhardcommand.sessioncore.data.TacticalTileData;
 
 /**
@@ -55,105 +55,8 @@ public abstract class SpriteTilePatternSwitch {
     public static final int BLANK = 19;
     public static final int SPRITE_COUNT = 20;
     
-    private final static SpriteTilePattern[] FALSE_PATTERNS = new SpriteTilePattern[] {
-            new SpriteTilePattern(
-                    SIDE_PILLAR,
-                    getPatternFromDiagram("111 0 0 000"),
-                    getPatternFromDiagram("010 0 0 000")
-            ),
-            new SpriteTilePattern(
-                    SIDE_WEST,
-                    getPatternFromDiagram("111 0 0 000"),
-                    getPatternFromDiagram("011 0 0 000")
-            ),
-            new SpriteTilePattern(
-                    SIDE_EAST,
-                    getPatternFromDiagram("111 0 0 000"),
-                    getPatternFromDiagram("110 0 0 000")
-            ),
-            new SpriteTilePattern(
-                    SIDE_FLAT,
-                    getPatternFromDiagram("111 0 0 000"),
-                    getPatternFromDiagram("111 0 0 000")
-            )
-    };
-    private final static SpriteTilePattern[] TRUE_PATTERNS = new SpriteTilePattern[] {
-            new SpriteTilePattern(
-                    PILLAR,
-                    getPatternFromDiagram("010 1 1 010"),
-                    getPatternFromDiagram("000 0 0 000")
-            ),
-            new SpriteTilePattern(
-                    NORTH_SOUTH,
-                    getPatternFromDiagram("010 1 1 010"),
-                    getPatternFromDiagram("010 0 0 010")
-            ),
-            new SpriteTilePattern(
-                    EAST_WEST,
-                    getPatternFromDiagram("010 1 1 010"),
-                    getPatternFromDiagram("000 1 1 000")
-            ),
-            new SpriteTilePattern(
-                    NORTH_EDGE,
-                    getPatternFromDiagram("010 1 1 010"),
-                    getPatternFromDiagram("000 1 1 010")
-            ),
-            new SpriteTilePattern(
-                    SOUTH_EDGE,
-                    getPatternFromDiagram("010 1 1 010"),
-                    getPatternFromDiagram("010 1 1 000")
-            ),
-            new SpriteTilePattern(
-                    EAST_EDGE,
-                    getPatternFromDiagram("010 1 1 010"),
-                    getPatternFromDiagram("010 1 0 010")
-            ),
-            new SpriteTilePattern(
-                    WEST_EDGE,
-                    getPatternFromDiagram("010 1 1 010"),
-                    getPatternFromDiagram("010 0 1 010")
-            ),
-            new SpriteTilePattern(
-                    NORTH,
-                    getPatternFromDiagram("010 1 1 010"),
-                    getPatternFromDiagram("000 0 0 010")
-            ),
-            new SpriteTilePattern(
-                    SOUTH,
-                    getPatternFromDiagram("010 1 1 010"),
-                    getPatternFromDiagram("010 0 0 000")
-            ),
-            new SpriteTilePattern(
-                    EAST,
-                    getPatternFromDiagram("010 1 1 010"),
-                    getPatternFromDiagram("000 1 0 000")
-            ),
-            new SpriteTilePattern(
-                    WEST,
-                    getPatternFromDiagram("010 1 1 010"),
-                    getPatternFromDiagram("000 0 1 000")
-            ),
-            new SpriteTilePattern(
-                    NORTHEAST,
-                    getPatternFromDiagram("010 1 1 010"),
-                    getPatternFromDiagram("000 1 0 010")
-            ),
-            new SpriteTilePattern(
-                    SOUTHEAST,
-                    getPatternFromDiagram("010 1 1 010"),
-                    getPatternFromDiagram("010 1 0 000")
-            ),
-            new SpriteTilePattern(
-                    SOUTHWEST,
-                    getPatternFromDiagram("010 1 1 010"),
-                    getPatternFromDiagram("010 0 1 000")
-            ),
-            new SpriteTilePattern(
-                    NORTHWEST,
-                    getPatternFromDiagram("010 1 1 010"),
-                    getPatternFromDiagram("000 0 1 010")
-            )
-    };
+    private static SpriteTilePattern[] FALSE_PATTERNS;
+    private static SpriteTilePattern[] TRUE_PATTERNS;
     
     private final Sprite[] spriteArray;
     
@@ -167,9 +70,9 @@ public abstract class SpriteTilePatternSwitch {
         }
     }
     
-    public void setSprite(int spriteIndex, Sprite sprite) {
+    public void setSprite(int spriteIndex, Sprite sprite) throws InvalidSpriteIndexException {
         if (spriteIndex < 0 || spriteIndex >= SPRITE_COUNT) {
-            throw new RuntimeException("Invalid sprite index: " + spriteIndex);
+            throw new InvalidSpriteIndexException(spriteIndex);
         }
         
         spriteArray[spriteIndex] = sprite;
@@ -216,9 +119,9 @@ public abstract class SpriteTilePatternSwitch {
      * @param diagram
      * @return directional pattern (int)
      */
-    private static byte getPatternFromDiagram(String diagram) {
+    private static byte getPatternFromDiagram(String diagram) throws InvalidDiagramStringException {
         if (diagram.length() != 11) {
-            throw new RuntimeException("Invalid diagram String: \"" + diagram + "\"");
+            throw new InvalidDiagramStringException(diagram);
         }
         
         /*
@@ -254,36 +157,141 @@ public abstract class SpriteTilePatternSwitch {
     public static SpriteTilePatternSwitch IS_RAISED_SWITCH;
     
     public static void loadSpritePatterns() {
-        IS_RAISED_SWITCH = new SpriteTilePatternSwitch() {
-            @Override
-            public boolean isTrue(TacticalTileData dataTile) {
-                return dataTile.isRaised();
-            }
-            
-            @Override
-            public byte getPattern(TacticalTileData dataTile) {
-                return dataTile.neighborRaisePattern;
-            }
-        };
-        IS_RAISED_SWITCH.setDefault(Sprite.BLANK_GROUND);
-        IS_RAISED_SWITCH.setSprite(SIDE_PILLAR, Sprite.CLIFFSIDE_PILLAR);
-        IS_RAISED_SWITCH.setSprite(SIDE_WEST, Sprite.CLIFFSIDE_WEST);
-        IS_RAISED_SWITCH.setSprite(SIDE_EAST, Sprite.CLIFFSIDE_EAST);
-        IS_RAISED_SWITCH.setSprite(SIDE_FLAT, Sprite.CLIFFSIDE_FLAT);
-        IS_RAISED_SWITCH.setSprite(PILLAR, Sprite.CLIFF_PILLAR);
-        IS_RAISED_SWITCH.setSprite(NORTH_SOUTH, Sprite.CLIFF_NORTH_SOUTH);
-        IS_RAISED_SWITCH.setSprite(EAST_WEST, Sprite.CLIFF_EAST_WEST);
-        IS_RAISED_SWITCH.setSprite(NORTH_EDGE, Sprite.CLIFF_NORTH_EDGE);
-        IS_RAISED_SWITCH.setSprite(SOUTH_EDGE, Sprite.CLIFF_SOUTH_EDGE);
-        IS_RAISED_SWITCH.setSprite(EAST_EDGE, Sprite.CLIFF_EAST_EDGE);
-        IS_RAISED_SWITCH.setSprite(WEST_EDGE, Sprite.CLIFF_WEST_EDGE);
-        IS_RAISED_SWITCH.setSprite(NORTH, Sprite.CLIFF_NORTH);
-        IS_RAISED_SWITCH.setSprite(SOUTH, Sprite.CLIFF_SOUTH);
-        IS_RAISED_SWITCH.setSprite(EAST, Sprite.CLIFF_EAST);
-        IS_RAISED_SWITCH.setSprite(WEST, Sprite.CLIFF_WEST);
-        IS_RAISED_SWITCH.setSprite(NORTHEAST, Sprite.CLIFF_NORTHEAST);
-        IS_RAISED_SWITCH.setSprite(SOUTHEAST, Sprite.CLIFF_SOUTHEAST);
-        IS_RAISED_SWITCH.setSprite(SOUTHWEST, Sprite.CLIFF_SOUTHWEST);
-        IS_RAISED_SWITCH.setSprite(NORTHWEST, Sprite.CLIFF_NORTHWEST);
+        try {
+            FALSE_PATTERNS = new SpriteTilePattern[] {
+                    new SpriteTilePattern(
+                            SIDE_PILLAR,
+                            getPatternFromDiagram("111 0 0 000"),
+                            getPatternFromDiagram("010 0 0 000")
+                    ),
+                    new SpriteTilePattern(
+                            SIDE_WEST,
+                            getPatternFromDiagram("111 0 0 000"),
+                            getPatternFromDiagram("011 0 0 000")
+                    ),
+                    new SpriteTilePattern(
+                            SIDE_EAST,
+                            getPatternFromDiagram("111 0 0 000"),
+                            getPatternFromDiagram("110 0 0 000")
+                    ),
+                    new SpriteTilePattern(
+                            SIDE_FLAT,
+                            getPatternFromDiagram("111 0 0 000"),
+                            getPatternFromDiagram("111 0 0 000")
+                    )
+            };
+
+            TRUE_PATTERNS = new SpriteTilePattern[] {
+                    new SpriteTilePattern(
+                            PILLAR,
+                            getPatternFromDiagram("010 1 1 010"),
+                            getPatternFromDiagram("000 0 0 000")
+                    ),
+                    new SpriteTilePattern(
+                            NORTH_SOUTH,
+                            getPatternFromDiagram("010 1 1 010"),
+                            getPatternFromDiagram("010 0 0 010")
+                    ),
+                    new SpriteTilePattern(
+                            EAST_WEST,
+                            getPatternFromDiagram("010 1 1 010"),
+                            getPatternFromDiagram("000 1 1 000")
+                    ),
+                    new SpriteTilePattern(
+                            NORTH_EDGE,
+                            getPatternFromDiagram("010 1 1 010"),
+                            getPatternFromDiagram("000 1 1 010")
+                    ),
+                    new SpriteTilePattern(
+                            SOUTH_EDGE,
+                            getPatternFromDiagram("010 1 1 010"),
+                            getPatternFromDiagram("010 1 1 000")
+                    ),
+                    new SpriteTilePattern(
+                            EAST_EDGE,
+                            getPatternFromDiagram("010 1 1 010"),
+                            getPatternFromDiagram("010 1 0 010")
+                    ),
+                    new SpriteTilePattern(
+                            WEST_EDGE,
+                            getPatternFromDiagram("010 1 1 010"),
+                            getPatternFromDiagram("010 0 1 010")
+                    ),
+                    new SpriteTilePattern(
+                            NORTH,
+                            getPatternFromDiagram("010 1 1 010"),
+                            getPatternFromDiagram("000 0 0 010")
+                    ),
+                    new SpriteTilePattern(
+                            SOUTH,
+                            getPatternFromDiagram("010 1 1 010"),
+                            getPatternFromDiagram("010 0 0 000")
+                    ),
+                    new SpriteTilePattern(
+                            EAST,
+                            getPatternFromDiagram("010 1 1 010"),
+                            getPatternFromDiagram("000 1 0 000")
+                    ),
+                    new SpriteTilePattern(
+                            WEST,
+                            getPatternFromDiagram("010 1 1 010"),
+                            getPatternFromDiagram("000 0 1 000")
+                    ),
+                    new SpriteTilePattern(
+                            NORTHEAST,
+                            getPatternFromDiagram("010 1 1 010"),
+                            getPatternFromDiagram("000 1 0 010")
+                    ),
+                    new SpriteTilePattern(
+                            SOUTHEAST,
+                            getPatternFromDiagram("010 1 1 010"),
+                            getPatternFromDiagram("010 1 0 000")
+                    ),
+                    new SpriteTilePattern(
+                            SOUTHWEST,
+                            getPatternFromDiagram("010 1 1 010"),
+                            getPatternFromDiagram("010 0 1 000")
+                    ),
+                    new SpriteTilePattern(
+                            NORTHWEST,
+                            getPatternFromDiagram("010 1 1 010"),
+                            getPatternFromDiagram("000 0 1 010")
+                    )
+            };
+
+            IS_RAISED_SWITCH = new SpriteTilePatternSwitch() {
+                @Override
+                public boolean isTrue(TacticalTileData dataTile) {
+                    return dataTile.isRaised();
+                }
+
+                @Override
+                public byte getPattern(TacticalTileData dataTile) {
+                    return dataTile.neighborRaisePattern;
+                }
+            };
+            IS_RAISED_SWITCH.setDefault(Sprite.BLANK_GROUND);
+            IS_RAISED_SWITCH.setSprite(SIDE_PILLAR, Sprite.CLIFFSIDE_PILLAR);
+            IS_RAISED_SWITCH.setSprite(SIDE_WEST, Sprite.CLIFFSIDE_WEST);
+            IS_RAISED_SWITCH.setSprite(SIDE_EAST, Sprite.CLIFFSIDE_EAST);
+            IS_RAISED_SWITCH.setSprite(SIDE_FLAT, Sprite.CLIFFSIDE_FLAT);
+            IS_RAISED_SWITCH.setSprite(PILLAR, Sprite.CLIFF_PILLAR);
+            IS_RAISED_SWITCH.setSprite(NORTH_SOUTH, Sprite.CLIFF_NORTH_SOUTH);
+            IS_RAISED_SWITCH.setSprite(EAST_WEST, Sprite.CLIFF_EAST_WEST);
+            IS_RAISED_SWITCH.setSprite(NORTH_EDGE, Sprite.CLIFF_NORTH_EDGE);
+            IS_RAISED_SWITCH.setSprite(SOUTH_EDGE, Sprite.CLIFF_SOUTH_EDGE);
+            IS_RAISED_SWITCH.setSprite(EAST_EDGE, Sprite.CLIFF_EAST_EDGE);
+            IS_RAISED_SWITCH.setSprite(WEST_EDGE, Sprite.CLIFF_WEST_EDGE);
+            IS_RAISED_SWITCH.setSprite(NORTH, Sprite.CLIFF_NORTH);
+            IS_RAISED_SWITCH.setSprite(SOUTH, Sprite.CLIFF_SOUTH);
+            IS_RAISED_SWITCH.setSprite(EAST, Sprite.CLIFF_EAST);
+            IS_RAISED_SWITCH.setSprite(WEST, Sprite.CLIFF_WEST);
+            IS_RAISED_SWITCH.setSprite(NORTHEAST, Sprite.CLIFF_NORTHEAST);
+            IS_RAISED_SWITCH.setSprite(SOUTHEAST, Sprite.CLIFF_SOUTHEAST);
+            IS_RAISED_SWITCH.setSprite(SOUTHWEST, Sprite.CLIFF_SOUTHWEST);
+            IS_RAISED_SWITCH.setSprite(NORTHWEST, Sprite.CLIFF_NORTHWEST);
+        } catch (InvalidDiagramStringException | InvalidSpriteIndexException ex) {
+            Main.showInitException(ex, SpriteTilePatternSwitch.class);
+        }
     }
 }

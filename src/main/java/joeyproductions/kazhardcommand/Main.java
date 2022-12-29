@@ -29,16 +29,18 @@ import com.github.weisj.darklaf.theme.DarculaTheme;
 import com.github.weisj.darklaf.theme.Theme;
 import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
-import java.util.ArrayList;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import joeyproductions.kazhardcommand.events.*;
+import joeyproductions.kazhardcommand.events.ui.*;
 import joeyproductions.kazhardcommand.sessioncore.SessionFrame;
 import joeyproductions.kazhardcommand.spritecore.SpriteTilePatternSwitch;
-import joeyproductions.kazhardcommand.sessioncore.ui.VisualTacticalTile;
 
 /**
  * The entry point class of the program.
@@ -48,7 +50,7 @@ public class Main {
     
     private static Main SINGLETON;
     private SessionFrame sessionFrame;
-    private final LinkedBlockingQueue<String> eventPool = new LinkedBlockingQueue<>();
+    private final LinkedBlockingQueue<SessionEvent> eventPool = new LinkedBlockingQueue<>();
     
     private int screenWidth = 640;
     private int screenHeight = 400;
@@ -56,7 +58,12 @@ public class Main {
     public static final int SCREEN_STANDARD_HEIGHT = 960;
     public static final int SCREEN_EDGE_BUFFER = 128;
     public static final int PIXEL_UPSCALE_STEPS = 2;
-    public static boolean IS_RUNNING = true;
+    
+    private static Exception INIT_EX = null;
+    private static boolean IS_FRAME_INIT_DONE = false;
+    private static boolean IS_RUNNING = true;
+    
+    private static boolean PRINT_EVENTS = false;
     
     public static void main(String[] args) {
         SINGLETON = new Main();
@@ -70,16 +77,32 @@ public class Main {
         SINGLETON.screenHeight = graphicsDevice.getDisplayMode().getHeight();
         
         // Load sprites
-        Sprite.loadSprites();
+        if (INIT_EX == null) Sprite.loadSprites();
         
         // Load sprite patterns
-        SpriteTilePatternSwitch.loadSpritePatterns();
+        if (INIT_EX == null) SpriteTilePatternSwitch.loadSpritePatterns();
         
         // Load testing session frame
-        SINGLETON.sessionFrame = SessionFrame.create();
+        if (INIT_EX == null) SINGLETON.sessionFrame = SessionFrame.create();
         
-        // Start the event handler
-        SINGLETON.initEventHandler();
+        // Wait until the sessionFrame is done initializing.
+        // We will not be accepting events until this is done.
+        // If something goes wrong with this, then events would not have been
+        // valid anyways.
+        while (!IS_FRAME_INIT_DONE && INIT_EX == null) {
+            waitStandardDelay();
+        }
+        
+        if (INIT_EX == null) {
+            // Start the event handler
+            SINGLETON.initEventHandler();
+        }
+        else {
+            if (SINGLETON.sessionFrame != null) {
+                SINGLETON.sessionFrame.doEmergencyBailout();
+            }
+            InitExceptionFrame.showFor(INIT_EX);
+        }
     }
     
     public static int getScreenWidth() {
@@ -90,9 +113,20 @@ public class Main {
         return SINGLETON.screenHeight;
     }
     
-    public static void handleEvent(String event) {
+    public static void endProgram() {
+        IS_RUNNING = false;
+    }
+    
+    public static void markFrameInitDone() {
+        IS_FRAME_INIT_DONE = true;
+    }
+    
+    public static void handleEvent(SessionEvent event) {
         try {
             SINGLETON.eventPool.offer(event, 5, TimeUnit.SECONDS);
+            if (PRINT_EVENTS) {
+                System.out.println("Event added: " + event.getClass().getName());
+            }
         } catch (InterruptedException ex) {
             Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -102,7 +136,7 @@ public class Main {
         while (IS_RUNNING) {
             while (!eventPool.isEmpty()) {
                 try {
-                    String event = eventPool.poll(5, TimeUnit.SECONDS);
+                    SessionEvent event = eventPool.poll(5, TimeUnit.SECONDS);
                     if (event != null) {
                         distributeEvent(event);
                     }
@@ -112,15 +146,36 @@ public class Main {
             }
             
             // Chill out, and let the eventPool have some breathing room.
-            try {
-                TimeUnit.MILLISECONDS.sleep(10);
-            } catch (InterruptedException ex) {
-                Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
-            }
+            waitStandardDelay();
         }
     }
     
-    private void distributeEvent(String event) {
-        //TODO: Send somewhere
+    private void distributeEvent(SessionEvent event) {
+        if (event instanceof RepaintEvent) {
+            sessionFrame.handleRepaintEvent((RepaintEvent)event);
+        }
+    }
+    
+    private static void waitStandardDelay() {
+        try {
+            TimeUnit.MILLISECONDS.sleep(10);
+        } catch (InterruptedException ex) {
+            Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+    
+    public static void showInitException(Exception ex, Class thrower) {
+        Logger.getLogger(thrower.getName()).log(Level.SEVERE, null, ex);
+        if (INIT_EX != null) return;
+        INIT_EX = ex;
+    }
+    
+    public static File openLocalFile(String pathStr, Class loader) throws IOException {
+        Path path = Path.of(pathStr);
+        if (Files.exists(path)) {
+            return new File(pathStr);
+        }
+        showInitException(new SpecificFileException(path), loader);
+        throw new IOException("Can't read input file!");
     }
 }

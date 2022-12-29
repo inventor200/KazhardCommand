@@ -27,6 +27,7 @@ import joeyproductions.kazhardcommand.sessioncore.ui.VisualTacticalTile;
 import joeyproductions.kazhardcommand.sessioncore.data.TacticalTileData;
 import joeyproductions.kazhardcommand.spritecore.SpriteTilePatternSwitch;
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.GridLayout;
 import javax.swing.Box;
@@ -34,13 +35,16 @@ import javax.swing.BoxLayout;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.SwingUtilities;
+import joeyproductions.kazhardcommand.Main;
+import joeyproductions.kazhardcommand.events.ui.RepaintEvent;
+import joeyproductions.kazhardcommand.events.ui.RepaintHandler;
 import joeyproductions.kazhardcommand.sessioncore.data.TacticalMapData;
 
 /**
  * Basic handler for map grids.
  * @author Joseph Cramsey
  */
-public class VisualTacticalGrid {
+public class VisualTacticalGrid extends RepaintHandler {
     
     public static final int TILE_SIDE_LEN = 64;
     public static final Dimension TILE_SIZE = new Dimension(TILE_SIDE_LEN, TILE_SIDE_LEN);
@@ -163,6 +167,7 @@ public class VisualTacticalGrid {
         
         // Load default map
         product.loadMap(TacticalMapData.create());
+        Main.handleEvent(new RepaintEvent(VISIBLE_GRID, true));
         
         return product;
     }
@@ -173,15 +178,25 @@ public class VisualTacticalGrid {
     
     public void loadMap(TacticalMapData tileData) {
         this.tileData = tileData;
-        SwingUtilities.invokeLater(() -> {
-            TacticalTileData[] dataTiles = tileData.getTiles();
-            for (int i = 0; i < tiles.length; i++) {
-                tiles[i].data = dataTiles[i];
-                tiles[i].cachedRaiseSprite =
-                        SpriteTilePatternSwitch.IS_RAISED_SWITCH.getSprite(dataTiles[i]);
-            }
-            tilePanel.revalidate();
-            tilePanel.repaint();
-        });
+    }
+    
+    @Override
+    public void beforeRevalidate() {
+        TacticalTileData[] dataTiles = tileData.getTiles();
+        for (int i = 0; i < tiles.length; i++) {
+            tiles[i].data = dataTiles[i];
+            tiles[i].cachedRaiseSprite =
+                    SpriteTilePatternSwitch.IS_RAISED_SWITCH.getSprite(dataTiles[i]);
+        }
+    }
+
+    @Override
+    public Component getRepaintTarget() {
+        return tilePanel;
+    }
+
+    @Override
+    public boolean isValidRepaintTarget() {
+        return true;
     }
 }

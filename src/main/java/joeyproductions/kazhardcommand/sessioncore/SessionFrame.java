@@ -25,18 +25,21 @@ package joeyproductions.kazhardcommand.sessioncore;
 
 import joeyproductions.kazhardcommand.sessioncore.ui.VisualTacticalGrid;
 import java.awt.BorderLayout;
+import java.awt.Component;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 import joeyproductions.kazhardcommand.Main;
+import joeyproductions.kazhardcommand.events.ui.RepaintEvent;
+import joeyproductions.kazhardcommand.events.ui.RepaintHandler;
 
 /**
  * The root window that handles a single game.
  * @author Joseph Cramsey
  */
-public class SessionFrame {
+public class SessionFrame extends RepaintHandler {
     
     private final JFrame jframe;
     private final JPanel contentPanel;
@@ -68,7 +71,7 @@ public class SessionFrame {
             product.jframe.addWindowListener(new WindowAdapter() {
                 @Override
                 public void windowClosing(WindowEvent e) {
-                    Main.IS_RUNNING = false;
+                    Main.endProgram();
                 }
             });
             
@@ -76,11 +79,29 @@ public class SessionFrame {
             product.jframe.setContentPane(product.contentPanel);
             
             product.tileGrid = VisualTacticalGrid.create();
+            product.addRepaintableChild(product.tileGrid, VISIBLE_GRID);
             product.contentPanel.add(product.tileGrid.getScrollPane(), BorderLayout.CENTER);
             
             product.jframe.setVisible(true);
+            Main.markFrameInitDone();
         });
         
         return product;
+    }
+    
+    public void doEmergencyBailout() {
+        SwingUtilities.invokeLater(() -> {
+            jframe.dispose();
+        });
+    }
+
+    @Override
+    public Component getRepaintTarget() {
+        return jframe;
+    }
+
+    @Override
+    public boolean isValidRepaintTarget() {
+        return true;
     }
 }
